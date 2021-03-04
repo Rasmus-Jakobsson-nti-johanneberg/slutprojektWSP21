@@ -6,6 +6,7 @@ Sidan ska även tillåta en att se andra profilers bloggar där man ska kunna li
 alla bloggar listade i antal likes/kommentarer.
 
 ## 2. Vyer (visa bildskisser på dina sidor).
+https://gyazo.com/d1eccd0f962c74b961efc9a4dcb7e77b
 
 ## 3. Databas med ER-diagram (Bild på ER-diagram).
 
