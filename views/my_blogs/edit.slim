@@ -1,0 +1,5 @@
+form action="/my_blogs/#{result["id"]}/update" method="post"
+    input type="text" name="title" value="#{result["title"]}"
+    input type="text" name="content" value="#{result["content"]}"
+    input type="hidden" name="user_id" value="#{result["user_id"]}"
+    input type="submit" value="Edit!"
