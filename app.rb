@@ -1,112 +1,154 @@
+require_relative 'model/model.rb'
 require 'sinatra'
 require 'slim'
 require 'sqlite3'
 require 'bcrypt'
 
 enable :sessions
+include Model
 
-get('/') do
-    db = SQLite3::Database.new("blog_database.db")
-    db.results_as_hash = true
-    result = db.execute("SELECT users.username, users.id, blogs.title, blogs.content, blogs.user_id FROM blogs INNER JOIN users")
-    p result
-    slim(:home,locals:{blogs:result})
+t = Time.now
+i = 0
+
+def get_user_id()
+    return session[:id]
 end
 
-#post("/") do
-#    db = SQLite3::Database.new("blog_database.db")
-#end
+get('/') do
+    slim(:register)
+end
 
-get("/login") do
+post('/users/new') do
+
+    if validate_username_length(params) == false
+        session[:em] = "Ditt användarnamn är för kort. Vänligen försök igen!"
+        session[:re] = "/"
+        redirect('/error')
+    end
+
+    if validate_password(params) == true
+        register = create_user(params)
+        redirect('/showlogin')
+    else
+        session[:em] = "Lösenordet är för kort eller matchar ej. Vänligen försök igen!"
+        session[:re] = "/"
+        redirect('/error')
+    end
+end
+
+get('/showlogin') do
     slim(:login)
 end
 
 post('/login') do
-    username = params[:username]
     password = params[:password]
-    db = SQLite3::Database.new("blog_database.db")
-    db.results_as_hash = true
-    result = db.execute("SELECT * FROM users WHERE username = ?",username).first
-    pwd = result["pwd"]
-    id = result["id"]
-
-    if BCrypt::Password.new(pwd) == password
-    
-        session[:id] = id
-        redirect('/')
-    else
-        "Fel lösen breh"
+    db = get_database(params)
+    if get_user(params) == nil
+        session[:em] = "Kontot existerar inte. Vänligen registrera ett konto"
+        session[:re] = "/"
+        redirect("/error")
     end
-end    
 
-get("/register") do
-    slim(:register)
+    if login(params, i, t) == true
+        session[:id] = get_user(params)["id"]
+        i = 0 
+        redirect('my_blogs')
+    elsif login(params, i, t) == false
+        session[:em] = "För många fel, dags för en timeout"
+        session[:re] = "/showlogin"
+        session[:time] = Time.now + (10)
+        t = session[:time]
+        i +=1 
+        redirect("/error")
+
+    else
+        session[:em] = "Fel lösenord, försök igen"
+        session[:re] = "/showlogin"
+        i += 1
+        redirect("/error")
+    end
 end
 
-post("/register") do
-    username = params[:username]
-    password = params[:password]
-    password_confirm = params[:password_confirm]
+get('/error') do
+    slim(:error)
+end
 
-    if username != "" and password != "" and password_confirm != ""
-        if password == password_confirm
-            password_digest = BCrypt::Password.create(password)
-            db = SQLite3::Database.new('blog_database.db')
-            db.execute("INSERT INTO users (username,pwd) VALUES (?,?)",username,password_digest)
-            redirect('/')
+get("/my_blogs") do
+    user_id = get_user_id()
+        if user_id == 0
+            session[:em] = "Du är inte nuvarande inloggad"
+            session[:re] = "/"
+            redirect("/error")
         else
-            "Lösenorden matchade ej!"
+            result = get_user_blogs(params, user_id)
         end
-    else
-        "Var snäll fyll i alla fält!"
-    end
+    slim(:"my_blogs/index", locals:{my_blogs:result})
 end
 
-get('/logout') do 
-    if session[:id]
-        session.destroy()
-    end
+get("/all_blogs") do
+    blogs = get_blogs(params)
+    genres = get_genres(params)
+    slim(:"my_blogs/all_blogs", locals:{blogs:blogs, genres:genres})
+end
+
+get("/logout") do
+    session.destroy()
     redirect("/")
 end
 
-post("/my_blogs") do
-    id = session[:id].to_i
-    title = params[:title]
-    content = params[:content]
-    db = SQLite3::Database.new("blog_database.db")
-    db.execute("INSERT INTO blogs (title,content,user_id) VALUES (?,?,?)",title,content,id)
-    redirect("/my_blogs")
-  end
+get("/my_blogs/create") do
+    result = get_genres(params)
+    slim(:"my_blogs/create", locals:{genres:result})
+end
 
-get("/my_blogs") do
-    id = session[:id].to_i
-    db = SQLite3::Database.new("blog_database.db")
-    db.results_as_hash = true
-    result = db.execute("SELECT * FROM blogs WHERE user_id = ?",id)
-    slim(:"my_blogs/index",locals:{my_blogs:result}) 
-  end
-  
-post("/my_blogs/:id/delete") do
-    id = params[:id].to_i
-    db = SQLite3::Database.new("blog_database.db")
-    db.execute("DELETE FROM blogs WHERE id = ?",id)
+post("/my_blogs/create") do
+    create_blog = create_blog(params)
     redirect("/my_blogs")
 end
-  
+
 get("/my_blogs/:id/edit") do
-    id = params[:id].to_i
-    db = SQLite3::Database.new("blog_database.db")
-    db.results_as_hash = true
-    result = db.execute("SELECT * FROM blogs WHERE id = ?",id).first
-    slim(:"my_blogs/edit",locals:{result:result})
+    if validate_blogs_user(params) == true
+        result = get_blog(params)
+        result2 = get_genres(params)
+        slim(:"my_blogs/edit", locals:{my_blogs:result, genres:result2})
+    else
+        session[:em] = "Detta är inte din blogg att ändra på!"
+        session[:re] = "/showlogin"
+        redirect("/error")
+    end
 end
-  
+
 post("/my_blogs/:id/update") do
-    id = params[:id].to_i
-    title = params[:title]
-    content = params[:content]
-    user_id = params[:user_id]
-    db = SQLite3::Database.new("blog_database.db")
-    db.execute("UPDATE blogs SET title=?,content=?,user_id=? WHERE id = ?",title,content,user_id,id)
-    redirect("/my_blogs")
+    if validate_blogs_user(params) == true
+        updated_blog = update_blog(params)
+        redirect("/my_blogs")
+    else
+        session[:em] = "Detta är inte din blogg att ändra på!"
+        session[:re] = "/showlogin"
+        redirect("/error")
+    end
+end
+
+post("/my_blogs/:id/delete") do
+    if validate_blogs_user(params) == true
+        delete = delete_blog(params)
+        redirect("/my_blogs")
+    else
+        session[:em] = "Detta är inte din blogg att ändra på!"
+        session[:re] = "/showlogin"
+        redirect("/error")
+    end
+end
+
+get("/genre/:id") do
+    blogs = get_blogs_with_genre(params)
+    genre = get_genre(params)
+    slim(:"my_blogs/all_blogs_genre", locals:{blogs:blogs, genre:genre})
+end
+
+get("/blog/:id") do
+    result = get_blog(params)
+    author = get_blog_author(params)
+    genre = get_blog_genre(params)
+    slim(:"my_blogs/blog_view", locals:{result:result, author:author, genre:genre})
 end

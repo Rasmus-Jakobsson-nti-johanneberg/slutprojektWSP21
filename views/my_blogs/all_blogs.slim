@@ -1,0 +1,12 @@
+h1 All written blogs 
+
+h2 Sort by genre:
+- genres.each do |genre|
+    ul 
+    a href="/genre/#{genre["id"]}" #{genre["name"]}
+
+h2 All written blogs: 
+- blogs.each do |blog|
+    ul 
+    a href="/blog/#{blog["id"]}" #{blog["title"]}
+

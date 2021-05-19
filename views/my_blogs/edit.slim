@@ -1,5 +1,10 @@
-form action="/my_blogs/#{result["id"]}/update" method="post"
-    input type="text" name="title" value="#{result["title"]}"
-    input type="text" name="content" value="#{result["content"]}"
-    input type="hidden" name="user_id" value="#{result["user_id"]}"
-    input type="submit" value="Edit!"
+form action="update" method="post" 
+    input type="text" name="title" value="#{my_blogs["title"]}"
+    input type="text" name="content" value="#{my_blogs["content"]}"
+    label for="genres" Välj genren till bloggen: 
+
+    select name="genre" id="genre"
+        - genres.each do |genre|
+            option value="#{genre['id']}" #{genre['name']}
+    
+    input type="submit" value="Spara ändringar"

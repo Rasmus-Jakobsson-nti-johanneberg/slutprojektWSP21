@@ -1,0 +1,12 @@
+h2 Skriv en blogg! 
+
+form action="/my_blogs/create" method="post" 
+    input type="text" name="title" placeholder="Namn på din blogg"
+    input type="text" name="content" placeholder="Innehållet"
+    label for="genres" Välj en genre till bloggen: 
+
+    select name="genre" id="genre"
+        - genres.each do |genre|
+            option value="#{genre['id']}" #{genre['name']}
+    
+    input type="submit" value="Skapa ny blogg"

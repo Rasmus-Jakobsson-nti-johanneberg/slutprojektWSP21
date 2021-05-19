@@ -1,15 +1,12 @@
 h2 Alla dina bloggar!
-
-form action="/my_blogs" method="POST"
-    input type="text" name="title" placeholder="Title på ny blogg"
-    input type="text" name="content" placeholder="Innehållet på ny blogg"
-    input type="submit" value="skapa!"
-
-ul
-    - my_blogs.each do |blog|        
+- my_blogs.each do |blog|      
+    ul
         li
             p = blog["title"]
             p = blog["content"]
             a href="my_blogs/#{blog["id"]}/edit" Uppdatera
             form method="POST" action="my_blogs/#{blog["id"]}/delete"
                 input type="submit" value="Delete"
+
+h3 Skriv en ny blogg: 
+a href="/my_blogs/create" Skriv!!!

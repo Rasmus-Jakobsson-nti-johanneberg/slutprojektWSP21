@@ -8,15 +8,17 @@ html lang="en"
   body
     - if session[:id] == nil
       nav
-        a href="/register" Register
-        a href="/login" Login
+        a href="/all_blogs" All blogs
+        a href="/" Register
+        a href="/showlogin" Login
+      h1 Welcome to myBlog©
+      h2 Registrera dig eller logga in!
     - else
       nav
+        a href="/all_blogs" All blogs
         a href="/my_blogs" My blogs
         a href="/logout" Logout
-    h1 
-      | Welcome to 
-      a href="/" myBlog©
-
+    
+    
 
     == yield
