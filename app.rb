@@ -46,6 +46,7 @@ post('/users/new') do
     end
 end
 
+#Displays a login form
 get('/showlogin') do
     slim(:login)
 end
