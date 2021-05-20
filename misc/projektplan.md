@@ -11,5 +11,19 @@ https://gyazo.com/d1eccd0f962c74b961efc9a4dcb7e77b
 ## 3. Databas med ER-diagram (Bild på ER-diagram).
 
 ## 4. Arkitektur (Beskriv filer och mappar - vad gör/innehåller de?).
+Jag har 8 mappar och 3 filer. De 3 filerna är app.rb, som innehåller mina gets och posts och formar hela websidan. Gemfile är endast till för yardoc och OLD_app.rb är som sagt gammal.
+
+Mappar:
+ - .yardoc: är endast yardocs automatiskt skapade saker
+ - db: innehåller min databas
+ - doc: yardocs automatiskt skapade filer som visar den nuvarande dokumentationen
+ - img: ER-diagram + skisser
+ - misc: övriga uppgiftsbeskrivningar
+ - model: innehåller min model.rb fil där alla funktioner som bland annat involverar databasen används och bli kallade i app.rb
+ - public: css-filen "style.css"
+ - Views: Alla slim filer
+    - my_blogs: alla slim filer som involverar bloggar. Där finns slim filerna där jag kan kolla på mina bloggar, alla bloggar, läsa specifika bloggar, bloggar som filtreras med en genre, skapa/uppdatera/ta bort mina bloggar, etc.
+    Det som är utanför my_blogs är min error.slim fil som visar alla error meddelanden. Layout.slim som är min "huvud-sida". Login.slim som visar login sidan och register.slim som visar sidan där man skapar sitt konto
+
 
 
